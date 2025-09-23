@@ -20,7 +20,7 @@ public:
 	// by iterateIntoMe
 	MyDB_RecordIteratorPtr getIterator (MyDB_RecordPtr iterateIntoMe);
 
-	// appends a record to this page... return false is the append fails because
+	// appends a record to this page... return false if the append fails because
 	// there is not enough space on the page; otherwise, return true
 	bool append (MyDB_RecordPtr appendMe);
 
