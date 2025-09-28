@@ -7,6 +7,7 @@
 #include "MyDB_Record.h"
 #include "MyDB_RecordIterator.h"
 #include "MyDB_Table.h"
+#include "MyDB_PageReaderWriter.h"
 
 // create a smart pointer for the catalog
 using namespace std;
@@ -14,7 +15,7 @@ class MyDB_PageReaderWriter;
 class MyDB_TableReaderWriter;
 typedef shared_ptr <MyDB_TableReaderWriter> MyDB_TableReaderWriterPtr;
 
-class MyDB_TableReaderWriter {
+class MyDB_TableReaderWriter : public std::enable_shared_from_this<MyDB_TableReaderWriter> {
 
 public:
 
@@ -30,7 +31,7 @@ public:
 	// append a record to the table
 	void append (MyDB_RecordPtr appendMe);
 
-	// return an itrator over this table... each time returnVal->next () is
+	// return an iterator over this table... each time returnVal->hasNext() is
 	// called, the resulting record will be placed into the record pointed to
 	// by iterateIntoMe
 	MyDB_RecordIteratorPtr getIterator (MyDB_RecordPtr iterateIntoMe);
@@ -50,6 +51,9 @@ public:
 private:
 
 	// ANYTHING YOU NEED HERE
+	MyDB_TablePtr myTable;
+	MyDB_BufferManagerPtr myBuffer;
+	std::vector<MyDB_PageReaderWriter> pages;
 };
 
 #endif
