@@ -28,7 +28,7 @@ MyDB_PageReaderWriter MyDB_TableReaderWriter :: operator [] (size_t i) {
 
 		// Create empty pages up to and including the requested page
 		for (size_t index = 1; index <= i - pages.size() + 1; i++) {
-			pages.push_back(MyDB_PageReaderWriter(myBuffer->getPageSize()));
+			pages.push_back(MyDB_PageReaderWriter(myBuffer->getPage(myTable, i), myBuffer->getPageSize(), myTable->getSchema()));
 		}
     }
 	return pages[i];
@@ -43,7 +43,7 @@ MyDB_PageReaderWriter MyDB_TableReaderWriter :: last () {
         std::cout << "Table has no pages" << std::endl;
 		
 		// Create an empty page to return
-		pages.push_back(MyDB_PageReaderWriter(myBuffer->getPageSize()));
+		pages.push_back(MyDB_PageReaderWriter(myBuffer->getPage(myTable, 0), myBuffer->getPageSize(), myTable->getSchema()));
     }
     return pages.back(); 
 }
@@ -53,7 +53,8 @@ void MyDB_TableReaderWriter :: append (MyDB_RecordPtr appendMe) {
 
 	// I'm appending to the last page of the table for now
 	if (!last().append(appendMe)) {
-		pages.push_back(MyDB_PageReaderWriter(myBuffer->getPageSize()));
+		MyDB_PageReaderWriter newPageRW = MyDB_PageReaderWriter(myBuffer->getPage(myTable, pages.size()), myBuffer->getPageSize(), myTable->getSchema());
+		pages.push_back(newPageRW);
 
 		// This should not happen
 		if (!last().append(appendMe)) {
