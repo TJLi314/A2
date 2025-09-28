@@ -87,7 +87,7 @@ void MyDB_TableReaderWriter :: loadFromTextFile (string fromMe) {
         }
 
         MyDB_RecordPtr rec = getEmptyRecord();
-        rec->fromText(line);
+        rec->fromString(line);
 
         append(rec);
     }
