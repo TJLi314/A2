@@ -10,7 +10,8 @@ MyDB_PageReaderWriter :: MyDB_PageReaderWriter (int pageSize, MyDB_SchemaPtr sch
     this->schema = schema;
 }
 
-MyDB_PageReaderWriter :: ~MyDB_PageReaderWriter () {
+MyDB_PageReaderWriter :: MyDB_PageReaderWriter () {
+    this->pageSize = 0;
     this->handle = nullptr;
     this->schema = nullptr;
 }
@@ -44,7 +45,7 @@ bool MyDB_PageReaderWriter :: append (MyDB_RecordPtr rec) {
     if (header->totalRecords == -1) {
         header->recordSize = rec->getBinarySize();
         header->pageSize = pageSize;
-        header->nextFreeByte = (void *)header + sizeof(PageHeader);
+        header->nextFreeByte = (char *)header + sizeof(PageHeader);
         header->totalRecords = (pageSize - sizeof(PageHeader)) / header->recordSize;
     }
 
@@ -55,7 +56,7 @@ bool MyDB_PageReaderWriter :: append (MyDB_RecordPtr rec) {
 
     void * toWrite = header->nextFreeByte;
     rec->toBinary(toWrite);
-    header->nextFreeByte = toWrite + header->recordSize;
+    header->nextFreeByte = (char *)toWrite + header->recordSize;
     header->recordCount++;
     handle->wroteBytes();
     return true;

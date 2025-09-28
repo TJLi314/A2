@@ -26,6 +26,8 @@ public:
 
     MyDB_PageReaderWriter (int pageSize, MyDB_SchemaPtr schema, MyDB_PageHandle handle);
 
+    MyDB_PageReaderWriter ();
+
 	// ANY OTHER METHODS YOU WANT HERE
 
 	// empties out the contents of this page, so that it has no records in it

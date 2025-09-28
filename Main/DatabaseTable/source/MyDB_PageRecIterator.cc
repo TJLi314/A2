@@ -2,7 +2,7 @@
 
 void MyDB_PageRecIterator :: getNext () {
     void * bytes = this->getBytes();
-    this->record->fromBinary(bytes + this->offset + this->current * this->record->getBinarySize());
+    this->record->fromBinary((char *)bytes + this->offset + this->current * this->record->getBinarySize());
     this->current++;
 }
 

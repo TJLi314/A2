@@ -28,7 +28,7 @@ public:
 	// destructor and contructor
 	MyDB_PageRecIterator (MyDB_RecordPtr ptr, std::function<bool(int)> isLast, std::function<void*()> getBytes, int offset);
 
-	~MyDB_PageRecIterator () override {};
+	~MyDB_PageRecIterator () override;
 
 private:
 
