@@ -4,10 +4,27 @@
 
 #include "MyDB_PageType.h"
 #include "MyDB_TableReaderWriter.h"
+#include "MyDB_PageRecIterator.h"
+#include "MyDB_Schema.h"
+#include "MyDB_Record.h"
+#include "MyDB_PageHandle.h"
+
+typedef struct PageHeader {
+    MyDB_PageType type;
+    int pageSize;
+    int recordCount;
+    int totalRecords;
+    size_t recordSize;
+    void * nextFreeByte;
+} PageHeader;
 
 class MyDB_PageReaderWriter {
 
+    
+
 public:
+
+    MyDB_PageReaderWriter (int pageSize, MyDB_SchemaPtr schema, MyDB_PageHandle handle);
 
 	// ANY OTHER METHODS YOU WANT HERE
 
@@ -33,7 +50,13 @@ public:
 	
 private:
 
+    MyDB_PageHandle handle;
+    MyDB_SchemaPtr schema;
+    int pageSize;
+
 	// ANYTHING ELSE YOU WANT HERE
+
+    bool isLast(int current);
 };
 
 #endif
