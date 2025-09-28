@@ -1,3 +1,9 @@
 Collaborators:
 Tianjian Li - tl107
 Stefan Boskovic - sb121
+
+Questions: 
+- Do we assume file size is infinite and we just keep creating pages for a table as needed?
+- Do we have to do this in loadFromTextFile: myTable->setLastPage(-1)? Is there anything else we have to do in the MyDB_Table code?
+- Are we allowed to use input file streams? (ifstreams)
+	

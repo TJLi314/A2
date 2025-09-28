@@ -2,10 +2,18 @@
 #ifndef TABLE_RW_C
 #define TABLE_RW_C
 
+#include <unistd.h>     // for write, close
+#include <fcntl.h>      // for open
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <sstream>
+#include <string>
+#include <iostream>
 #include <fstream>
 #include "MyDB_PageReaderWriter.h"
 #include "MyDB_TableReaderWriter.h"
 #include "MyDB_TableRecIterator.h"
+#include <fcntl.h>
 
 using namespace std;
 
@@ -19,7 +27,7 @@ MyDB_PageReaderWriter MyDB_TableReaderWriter :: operator [] (size_t i) {
         std::cout << "Page index out of range, creating new pages" << std::endl;
 
 		// Create empty pages up to and including the requested page
-		for (int index = 1; index <= i - pages.size() + 1; i++) {
+		for (size_t index = 1; index <= i - pages.size() + 1; i++) {
 			pages.push_back(MyDB_PageReaderWriter(myBuffer->getPageSize()));
 		}
     }
@@ -54,14 +62,72 @@ void MyDB_TableReaderWriter :: append (MyDB_RecordPtr appendMe) {
 	}
 }
 
-void MyDB_TableReaderWriter :: loadFromTextFile (string) {
+void MyDB_TableReaderWriter :: loadFromTextFile (string fromMe) {
+	// Clear existing pages
+	for (MyDB_PageReaderWriter pageRW: pages) {
+		pageRW.clear();
+	}
+	// Do we have to do this? Is there anything we have to do in the MyDB_Table code?
+	myTable->setLastPage(-1);
+	
+	// I don't know if this correctly discards of all the pageReaderWriter objects
+	pages.resize(0);
+
+	ifstream inFile(fromMe);
+    if (!inFile.is_open()) {
+        cerr << "Could not open file in loadFromTextFile" << endl;
+        return;
+    }
+
+	string line;
+    while (getline(inFile, line)) {
+        if (line.empty()) {
+            continue; 
+        }
+
+        MyDB_RecordPtr rec = getEmptyRecord();
+        rec->fromText(line);
+
+        append(rec);
+    }
+
+    inFile.close();
 }
 
 MyDB_RecordIteratorPtr MyDB_TableReaderWriter :: getIterator (MyDB_RecordPtr iterateIntoMe) {
 	return make_shared <MyDB_TableRecIterator>(shared_from_this(), iterateIntoMe);
 }
 
-void MyDB_TableReaderWriter :: writeIntoTextFile (string) {
+void MyDB_TableReaderWriter :: writeIntoTextFile (string toMe) {
+	int fd = open(toMe.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0644);
+	if (fd < 0) {
+        perror("open failed");
+        return;
+    }
+
+	MyDB_RecordPtr rec = getEmptyRecord();
+	for (MyDB_PageReaderWriter pageRW : pages) {
+		MyDB_RecordIteratorPtr it = pageRW.getIterator(rec);
+
+        while (it->hasNext()) {
+            it->getNext();
+
+            // convert record to string
+			std::stringstream ss;
+            ss << rec;
+            string line = ss.str() + "\n";
+
+            // write to file
+            ssize_t res = write(fd, line.c_str(), line.size());
+            if (res < 0) {
+                perror("write failed");
+                close(fd);
+                return;
+            }
+        }
+	}
+
+	close(fd);
 }
 
 #endif
