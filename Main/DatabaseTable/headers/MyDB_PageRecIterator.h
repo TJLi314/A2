@@ -36,8 +36,6 @@ private:
     std::function<void*()> getBytes;
     MyDB_RecordPtr record;
     int current;
-    int offset;
-
 };
 
 #endif

@@ -3,25 +3,22 @@
 #define PAGE_RW_C
 
 #include "MyDB_PageReaderWriter.h"
+#include <memory>
 
-MyDB_PageReaderWriter :: MyDB_PageReaderWriter (int pageSize, MyDB_SchemaPtr schema, MyDB_PageHandle handle) {
+MyDB_PageReaderWriter :: MyDB_PageReaderWriter (int pageSize, MyDB_PageHandle handle) {
     this->pageSize = pageSize;
     this->handle = handle;
-    this->schema = schema;
 }
 
 MyDB_PageReaderWriter :: MyDB_PageReaderWriter () {
     this->pageSize = 0;
     this->handle = nullptr;
-    this->schema = nullptr;
 }
 
 void MyDB_PageReaderWriter :: clear () {
     PageHeader * header = (PageHeader *)handle->getBytes();
-    header->type = MyDB_PageType::RegularPage;
-    header->recordCount = 0;
-    header->recordSize = 0;
-    header->totalRecords = -1;
+    memset(header, 0, pageSize);
+    header->type = RegularPage;
     handle->wroteBytes();
 }
 
@@ -42,29 +39,41 @@ void MyDB_PageReaderWriter :: setType (MyDB_PageType type) {
 
 bool MyDB_PageReaderWriter :: append (MyDB_RecordPtr rec) {
     PageHeader * header = (PageHeader *)handle->getBytes();
-    if (header->totalRecords == -1) {
-        header->recordSize = rec->getBinarySize();
+    std::cout << "Appending record of size " << rec->getBinarySize() << " to page with page size " << pageSize << std::endl;
+    std::cout << "rec at " << &rec << std::endl;
+    if (header->constructed == 0) {
         header->pageSize = pageSize;
         header->nextFreeByte = (char *)header + sizeof(PageHeader);
-        header->totalRecords = (pageSize - sizeof(PageHeader)) / header->recordSize;
+        std::cout << "first free bytes: " << header->nextFreeByte << std::endl;
+        header->constructed = 1;
+        handle->wroteBytes();
+        std::cout << "Initialized page header" << std::endl;
     }
 
-    if (header->recordCount == header->totalRecords) {
+
+    if ((char *)header->nextFreeByte + sizeof(size_t) + rec->getBinarySize() > (char *)header + header->pageSize) {
         std::cout << "Not enough space on page to append record" << std::endl;
         return false;
     }
 
+    std::cout << "page is not full, appending record, size of page header: " << sizeof(PageHeader) << std::endl;
+
     void * toWrite = header->nextFreeByte;
+    size_t size = rec->getBinarySize();
+    std::cout << "Writing size_t at " << toWrite << " with header at " << header << std::endl;
+    memcpy(toWrite, &size, sizeof(size_t));
+    toWrite = (char *)toWrite + sizeof(size_t);
+    std::cout << "Writing record at " << toWrite<< std::endl;
     rec->toBinary(toWrite);
-    header->nextFreeByte = (char *)toWrite + header->recordSize;
-    header->recordCount++;
+    header->nextFreeByte = (char *)toWrite + rec->getBinarySize();
     handle->wroteBytes();
+    std::cout << "Appended record, next free byte is at " << header->nextFreeByte << std::endl;
     return true;
 }
 
 bool MyDB_PageReaderWriter :: isLast(int current) {
     PageHeader * header = (PageHeader *)this->handle->getBytes();
-    return current == header->recordCount;
+    return (char *)header + current == (char *)header->nextFreeByte;
 }
 
 #endif

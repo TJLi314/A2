@@ -11,10 +11,8 @@
 
 typedef struct PageHeader {
     MyDB_PageType type;
+    int constructed;
     int pageSize;
-    int recordCount;
-    int totalRecords;
-    size_t recordSize;
     void * nextFreeByte;
 } PageHeader;
 
@@ -24,7 +22,7 @@ class MyDB_PageReaderWriter {
 
 public:
 
-    MyDB_PageReaderWriter (int pageSize, MyDB_SchemaPtr schema, MyDB_PageHandle handle);
+    MyDB_PageReaderWriter (int pageSize, MyDB_PageHandle handle);
 
     MyDB_PageReaderWriter ();
 
@@ -53,7 +51,6 @@ public:
 private:
 
     MyDB_PageHandle handle;
-    MyDB_SchemaPtr schema;
     int pageSize;
 
 	// ANYTHING ELSE YOU WANT HERE

@@ -2,8 +2,9 @@
 
 void MyDB_PageRecIterator :: getNext () {
     void * bytes = this->getBytes();
-    this->record->fromBinary((char *)bytes + this->offset + this->current * this->record->getBinarySize());
-    this->current++;
+    int next = this->current + *((size_t *)((char *)bytes + this->current)) + sizeof(size_t);
+    this->record->fromBinary((char *)bytes + this->current);
+    this->current = next;
 }
 
 // return true iff there is another record in the file/page
@@ -16,8 +17,7 @@ MyDB_PageRecIterator :: MyDB_PageRecIterator (MyDB_RecordPtr ptr, std::function<
     this->isLast = isLast;
     this->getBytes = getBytes;
     this->record = ptr;
-    this->current = 0;
-    this->offset = offset;
+    this->current = offset;
 }
 
 MyDB_PageRecIterator :: ~MyDB_PageRecIterator () {

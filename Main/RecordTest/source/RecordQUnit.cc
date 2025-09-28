@@ -41,8 +41,12 @@ void initialize() {
 	MyDB_BufferManagerPtr myMgr = make_shared <MyDB_BufferManager>(1024, 16, "tempFile");
 	MyDB_TableReaderWriter supplierTable(myTable, myMgr);
 
+    std::cout << "\npassed init step" << std::endl;
+
 	// load it from a text file
 	supplierTable.loadFromTextFile("supplier.tbl");
+
+    std::cout << "passed load step" << std::endl;
 
 	// put the supplier table into the catalog
 	myTable->putInCatalog(myCatalog);
