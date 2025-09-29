@@ -36,13 +36,13 @@ MyDB_TableReaderWriter :: ~MyDB_TableReaderWriter() {
 
 MyDB_PageReaderWriter MyDB_TableReaderWriter :: operator [] (size_t i) {
 	if (i >= pages.size()) {
-        std::cout << "Page index out of range, creating new pages" << std::endl;
 
 		// Create empty pages up to and including the requested page
         int start = pages.size();
+        std::cout << "Creating pages from " << start << " to " << i << std::endl;
 		for (size_t index = start; index <= i; index++) {
+            std::cout << "Creating page " << index << std::endl;
 			pages.push_back(make_shared<MyDB_PageReaderWriter>(myBuffer->getPageSize(), myBuffer, myTable, index));
-            std::cout << "Created page at index: " << index << std::endl;
 		}
     }
 	return *pages[i];
@@ -76,7 +76,7 @@ void MyDB_TableReaderWriter :: append (MyDB_RecordPtr appendMe) {
 
 		// This should not happen
 		if (!last().append(appendMe)) {
-            // std::cout << "happened anyways" << std::endl;
+            std::cout << "happened anyways" << std::endl;
 		}
 	}
 }
@@ -119,9 +119,6 @@ void MyDB_TableReaderWriter :: loadFromTextFile (string fromMe) {
 
         append(rec);
 
-        // if (lines == 1) {
-        //     break;
-        // }
     }
     std::cout << "4" << std::endl;
 

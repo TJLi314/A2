@@ -9,9 +9,9 @@ void MyDB_PageRecIterator :: getNext () {
 
 // return true iff there is another record in the file/page
 bool MyDB_PageRecIterator :: hasNext ()  {
-    void * bytes = handle->getBytes();
-    int last = (size_t)*((char *)bytes);
-    return last == this->current;
+    PageHeader * header = (PageHeader *)handle->getBytes();
+    std::cout << "last: " << header->nextFreeByte << " current: " << this->current << " bytes: " << header->nextFreeByte << std::endl;
+    return header->nextFreeByte == this->current;
 }
 
 // destructor and contructor

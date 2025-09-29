@@ -2,20 +2,12 @@
 #ifndef PAGE_RW_H
 #define PAGE_RW_H
 
-#include "MyDB_PageType.h"
 #include "MyDB_PageRecIterator.h"
 #include "MyDB_Schema.h"
 #include "MyDB_Record.h"
 #include "MyDB_PageHandle.h"
 #include "MyDB_BufferManager.h"
 #include "MyDB_Table.h"
-
-typedef struct PageHeader {
-    size_t nextFreeByte;
-    size_t pageSize;
-    MyDB_PageType type;
-    int constructed;
-} PageHeader;
 
 class MyDB_PageReaderWriter;
 
