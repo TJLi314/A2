@@ -49,16 +49,13 @@ bool MyDB_PageReaderWriter :: append (MyDB_RecordPtr rec) {
         handle->wroteBytes();
     }
 
-    if (header->nextFreeByte + sizeof(size_t) + rec->getBinarySize() > header->pageSize) {
+    if (header->nextFreeByte + rec->getBinarySize() > header->pageSize) {
         return false;
     }
 
     void * toWrite = (char *)header + header->nextFreeByte;
-    size_t size = rec->getBinarySize();
-    memcpy(toWrite, &size, sizeof(size_t));
-    toWrite = (char *)toWrite + sizeof(size_t);
     rec->toBinary(toWrite);
-    header->nextFreeByte = header->nextFreeByte + rec->getBinarySize() + sizeof(size_t);
+    header->nextFreeByte = header->nextFreeByte + rec->getBinarySize();
     handle->wroteBytes();
     std::cout << "header at " << header << ", nextfreebyte at: " << &header->nextFreeByte << std::endl;
     std::cout << "Appended record, next free byte at: " << *reinterpret_cast<size_t*>(header) << " nextfreeByte: " << header->nextFreeByte << std::endl;
