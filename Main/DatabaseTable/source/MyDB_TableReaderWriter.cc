@@ -20,32 +20,46 @@ using namespace std;
 MyDB_TableReaderWriter :: MyDB_TableReaderWriter (MyDB_TablePtr forMe, MyDB_BufferManagerPtr myBuffer) {
 	this->myTable = forMe;
 	this->myBuffer = myBuffer;
+
+    // Set the last page of the table
+    int tableLastPage = forMe->lastPage();
+    if (tableLastPage != -1) {
+        // When creating first page, need to create specific first page, call getbytes(), write to it and initialize it
+        this->lastPageIndex = tableLastPage;
+        this->lastPageRW = MyDB_PageReaderWriter(myBuffer->getPageSize(), myBuffer, forMe, tableLastPage, false);
+    } else {
+        this->lastPageIndex = 0;
+        this->lastPageRW = MyDB_PageReaderWriter(myBuffer->getPageSize(), myBuffer, forMe, 0, true);
+    }
 }
 
 MyDB_TableReaderWriter :: ~MyDB_TableReaderWriter() {
-    std::cout << "Destroying TableReaderWriter: clearing pages..." << std::endl;
-    for (auto &p : pages) {
-        if (p) {
-            p->clear();   // if PageReaderWriter has clear; otherwise just reset pointer
-            p.reset();
-        }
-    }
-    pages.clear();
-    std::cout << "TableReaderWriter destroyed" << std::endl;
+    std::cout << "Destroying TableReaderWriter" << std::endl;
+    // for (auto &p : pages) {
+    //     if (p) {
+    //         p->clear();   // if PageReaderWriter has clear; otherwise just reset pointer
+    //         p.reset();
+    //     }
+    // }
+    // pages.clear();
+    // std::cout << "TableReaderWriter destroyed" << std::endl;
 }
 
 MyDB_PageReaderWriter MyDB_TableReaderWriter :: operator [] (size_t i) {
-	if (i >= pages.size()) {
+	if (i > lastPageIndex) {
 
 		// Create empty pages up to and including the requested page
-        int start = pages.size();
-        std::cout << "Creating pages from " << start << " to " << i << std::endl;
-		for (size_t index = start; index <= i; index++) {
-            std::cout << "Creating page " << index << std::endl;
-			pages.push_back(make_shared<MyDB_PageReaderWriter>(myBuffer->getPageSize(), myBuffer, myTable, index));
-		}
+        while (lastPageIndex < i) {
+            lastPageIndex += 1;
+            myBuffer->getPage(myTable, lastPageIndex);
+            myTable->setLastPage(lastPageIndex);
+        }
+
+        lastPageRW = MyDB_PageReaderWriter(myBuffer->getPageSize(), myBuffer, myTable, i, true);
+        return lastPageRW;
     }
-	return *pages[i];
+
+    return MyDB_PageReaderWriter(myBuffer->getPageSize(), myBuffer, myTable, i, false);
 }
 
 MyDB_RecordPtr MyDB_TableReaderWriter :: getEmptyRecord () {
@@ -53,26 +67,15 @@ MyDB_RecordPtr MyDB_TableReaderWriter :: getEmptyRecord () {
 }
 
 MyDB_PageReaderWriter MyDB_TableReaderWriter :: last () {
-	if (pages.empty()) {
-        std::cout << "Table has no pages" << std::endl;
-		
-		// Create an empty page to return
-		pages.push_back(make_shared<MyDB_PageReaderWriter>(myBuffer->getPageSize(), myBuffer, myTable, 0));
-        std::cout << "Created first page" << std::endl;
-    }
-    return *pages.back(); 
+    return lastPageRW; 
 }
 
 void MyDB_TableReaderWriter :: append (MyDB_RecordPtr appendMe) {
-	// TODO: Go through every page and try to append
-
-	// I'm appending to the last page of the table for now
 	if (!last().append(appendMe)) {
         // std::cout << "Creating new page for append" << std::endl;
-
-		MyDB_PageReaderWriterPtr newPageRW = make_shared<MyDB_PageReaderWriter>(myBuffer->getPageSize(), myBuffer, myTable, pages.size());
-        // std::cout << "New page handle: " << newPageRW->getBytes() << std::endl;
-		pages.push_back(newPageRW);
+        lastPageIndex++;
+		lastPageRW = MyDB_PageReaderWriter(myBuffer->getPageSize(), myBuffer, myTable, lastPageIndex, true);
+        myTable->setLastPage(lastPageIndex);
 
 		// This should not happen
 		if (!last().append(appendMe)) {
@@ -82,30 +85,16 @@ void MyDB_TableReaderWriter :: append (MyDB_RecordPtr appendMe) {
 }
 
 void MyDB_TableReaderWriter :: loadFromTextFile (string fromMe) {
-	// Clear existing pages
-    std::cout << "Clearing existing pages..." << std::endl;
-	for (MyDB_PageReaderWriterPtr pageRW: pages) {
-		pageRW->clear();
-	}
-	// Do we have to do this? Is there anything we have to do in the MyDB_Table code?
-	myTable->setLastPage(-1);
-    std::cout << "1" << std::endl;
-	
-	// I don't know if this correctly discards of all the pageReaderWriter objects
-	pages.resize(0);
-    std::cout << "2" << std::endl;
-
 	ifstream inFile(fromMe);
     if (!inFile.is_open()) {
         cerr << "Could not open file in loadFromTextFile" << endl;
         return;
     }
-    std::cout << "3" << std::endl;
 
 	string line;
     int lines = 0;
     while (getline(inFile, line)) {
-        // std::cout << "Read line: " + line << std::endl;
+        std::cout << "Read line: " + line << std::endl;
         // if (lines % 100 == 0) {
         //     std::cout << "Read " << lines << " lines" << std::endl;
         // }
@@ -118,9 +107,7 @@ void MyDB_TableReaderWriter :: loadFromTextFile (string fromMe) {
         rec->fromString(line);
 
         append(rec);
-
     }
-    std::cout << "4" << std::endl;
 
     inFile.close();
 
@@ -139,26 +126,23 @@ void MyDB_TableReaderWriter :: writeIntoTextFile (string toMe) {
     }
 
 	MyDB_RecordPtr rec = getEmptyRecord();
-	for (MyDB_PageReaderWriterPtr pageRW : pages) {
-		MyDB_RecordIteratorPtr it = pageRW->getIterator(rec);
+    MyDB_RecordIteratorPtr iterator = getIterator(rec);
+    while (iterator->hasNext()) {
+        iterator->getNext();
 
-        while (it->hasNext()) {
-            it->getNext();
+        // convert record to string
+        std::stringstream ss;
+        ss << rec;
+        string line = ss.str() + "\n";
 
-            // convert record to string
-			std::stringstream ss;
-            ss << rec;
-            string line = ss.str() + "\n";
-
-            // write to file
-            ssize_t res = write(fd, line.c_str(), line.size());
-            if (res < 0) {
-                perror("write failed");
-                close(fd);
-                return;
-            }
+        // write to file
+        ssize_t res = write(fd, line.c_str(), line.size());
+        if (res < 0) {
+            perror("write failed");
+            close(fd);
+            return;
         }
-	}
+    }
 
 	close(fd);
 }

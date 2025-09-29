@@ -38,7 +38,7 @@ public:
 	// by iterateIntoMe
 	MyDB_RecordIteratorPtr getIterator (MyDB_RecordPtr iterateIntoMe);
 
-	// load a text file into this table... overwrites the current contents
+	// load a text file into this table... append to the end of the table if already there
 	void loadFromTextFile (string fromMe);
 
 	// dump the contents of this table into a text file
@@ -55,7 +55,8 @@ private:
 	// ANYTHING YOU NEED HERE
 	MyDB_TablePtr myTable;
 	MyDB_BufferManagerPtr myBuffer;
-	std::vector<MyDB_PageReaderWriterPtr> pages;
+	MyDB_PageReaderWriter lastPageRW;
+	size_t lastPageIndex;
 };
 
 #endif
