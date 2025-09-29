@@ -46,7 +46,7 @@ public:
 	MyDB_PageReaderWriter operator [] (size_t i);
 
 	// access the last page in the file
-	MyDB_PageReaderWriterPtr last ();
+	MyDB_PageReaderWriter last ();
 
 private:
 

@@ -45,6 +45,8 @@ bool MyDB_PageReaderWriter :: append (MyDB_RecordPtr rec) {
         header->constructed = 1;
         handle->wroteBytes();
         std::cout << "new page constructed" << std::endl;
+    } else {
+        std::cout << "page already constructed, nextFreeByte: " << header->nextFreeByte << std::endl;
     }
 
     if (header->nextFreeByte + sizeof(size_t) + rec->getBinarySize() > header->pageSize) {
@@ -66,6 +68,11 @@ bool MyDB_PageReaderWriter :: append (MyDB_RecordPtr rec) {
 bool MyDB_PageReaderWriter :: isLast(int current) {
     PageHeader * header = (PageHeader *)this->handle->getBytes();
     return (char *)header + current == (char *)header->nextFreeByte;
+}
+
+MyDB_PageReaderWriter :: ~MyDB_PageReaderWriter () {
+    std::cout << "Destroying PageReaderWriter" << std::endl;
+    this->handle = nullptr;
 }
 
 #endif

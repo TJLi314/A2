@@ -38,26 +38,26 @@ MyDB_RecordPtr MyDB_TableReaderWriter :: getEmptyRecord () {
 	return make_shared <MyDB_Record>(myTable->getSchema());
 }
 
-MyDB_PageReaderWriterPtr MyDB_TableReaderWriter :: last () {
+MyDB_PageReaderWriter MyDB_TableReaderWriter :: last () {
 	if (pages.empty()) {
         std::cout << "Table has no pages" << std::endl;
 		
 		// Create an empty page to return
 		pages.push_back(make_shared<MyDB_PageReaderWriter>(myBuffer->getPageSize(), myBuffer->getPage(myTable, 0)));
     }
-    return pages.back(); 
+    return *pages.back(); 
 }
 
 void MyDB_TableReaderWriter :: append (MyDB_RecordPtr appendMe) {
 	// TODO: Go through every page and try to append
 
 	// I'm appending to the last page of the table for now
-	if (!last()->append(appendMe)) {
+	if (!last().append(appendMe)) {
 		MyDB_PageReaderWriterPtr newPageRW = make_shared<MyDB_PageReaderWriter>(myBuffer->getPageSize(), myBuffer->getPage(myTable, pages.size()));
 		pages.push_back(newPageRW);
 
 		// This should not happen
-		if (!last()->append(appendMe)) {
+		if (!last().append(appendMe)) {
             std::cout << "happened anyways" << std::endl;
 		}
 	}
@@ -95,7 +95,6 @@ void MyDB_TableReaderWriter :: loadFromTextFile (string fromMe) {
             continue; 
         }
 
-        // std::cout << "schema at " << myTable->getSchema().use_count() <<  " at addr " << myTable->getSchema().get() << std::endl;
         MyDB_RecordPtr rec = getEmptyRecord();
         rec->fromString(line);
 

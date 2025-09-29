@@ -27,6 +27,8 @@ public:
 
     MyDB_PageReaderWriter ();
 
+    ~MyDB_PageReaderWriter ();
+
 	// ANY OTHER METHODS YOU WANT HERE
 
 	// empties out the contents of this page, so that it has no records in it

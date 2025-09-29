@@ -72,6 +72,7 @@ int main(int argc, char *argv[]) {
 		// table hasNext
 		cout << "TEST 1..." << flush;
 		initialize();
+        cout << "passed initialization" << std::endl;
 		bool result = false;
 		{
 			cout << "create manager..." << flush;
