@@ -40,9 +40,11 @@ MyDB_PageReaderWriter MyDB_TableReaderWriter :: operator [] (size_t i) {
 
 		// Create empty pages up to and including the requested page
 		for (size_t index = 1; index <= i - pages.size() + 1; index++) {
-			pages.push_back(make_shared<MyDB_PageReaderWriter>(myBuffer->getPageSize(), myBuffer->getPage(myTable, i)));
+			pages.push_back(make_shared<MyDB_PageReaderWriter>(myBuffer->getPageSize(), myBuffer->getPage(myTable, pages.size())));
 		}
     }
+    std::cout << "trying to access page : " << i << std::endl;
+    std::cout << "pages size: " << pages.size() << std::endl;
 	return *pages[i];
 }
 
@@ -65,14 +67,14 @@ void MyDB_TableReaderWriter :: append (MyDB_RecordPtr appendMe) {
 
 	// I'm appending to the last page of the table for now
 	if (!last().append(appendMe)) {
-        std::cout << "Creating new page for append" << std::endl;
+        // std::cout << "Creating new page for append" << std::endl;
 
 		MyDB_PageReaderWriterPtr newPageRW = make_shared<MyDB_PageReaderWriter>(myBuffer->getPageSize(), myBuffer->getPage(myTable, pages.size()));
 		pages.push_back(newPageRW);
 
 		// This should not happen
 		if (!last().append(appendMe)) {
-            std::cout << "happened anyways" << std::endl;
+            // std::cout << "happened anyways" << std::endl;
 		}
 	}
 }
@@ -101,10 +103,10 @@ void MyDB_TableReaderWriter :: loadFromTextFile (string fromMe) {
 	string line;
     int lines = 0;
     while (getline(inFile, line)) {
-        std::cout << "Read line: " + line << std::endl;
-        if (lines % 100 == 0) {
-            std::cout << "Read " << lines << " lines" << std::endl;
-        }
+        // std::cout << "Read line: " + line << std::endl;
+        // if (lines % 100 == 0) {
+        //     std::cout << "Read " << lines << " lines" << std::endl;
+        // }
         lines++;
         if (line.empty()) {
             continue; 
@@ -115,9 +117,9 @@ void MyDB_TableReaderWriter :: loadFromTextFile (string fromMe) {
 
         append(rec);
 
-        if (lines == 1) {
-            break;
-        }
+        // if (lines == 1) {
+        //     break;
+        // }
     }
     std::cout << "4" << std::endl;
 
