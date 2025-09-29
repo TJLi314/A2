@@ -5,9 +5,12 @@
 #include "MyDB_PageReaderWriter.h"
 #include <memory>
 
-MyDB_PageReaderWriter :: MyDB_PageReaderWriter (int pageSize, MyDB_BufferManagerPtr mgr, MyDB_TablePtr table, int index) {
+MyDB_PageReaderWriter :: MyDB_PageReaderWriter (int pageSize, MyDB_BufferManagerPtr mgr, MyDB_TablePtr table, int index, bool isNewPage) {
     this->pageSize = pageSize;
     this->handle = mgr->getPage(table, index);
+    if (isNewPage) {
+        this->clear();
+    }
 }
 
 MyDB_PageReaderWriter :: MyDB_PageReaderWriter () {

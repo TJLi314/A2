@@ -17,7 +17,7 @@ class MyDB_PageReaderWriter {
 
 public:
 
-    MyDB_PageReaderWriter (int pageSize, MyDB_BufferManagerPtr mgr, MyDB_TablePtr table, int index);
+    MyDB_PageReaderWriter (int pageSize, MyDB_BufferManagerPtr mgr, MyDB_TablePtr table, int index, bool isNewPage);
 
     MyDB_PageReaderWriter ();
 
