@@ -50,6 +50,8 @@ public:
 
 	// sets the type of the page
 	void setType (MyDB_PageType toMe);
+
+    void * getBytes();
 	
 private:
 

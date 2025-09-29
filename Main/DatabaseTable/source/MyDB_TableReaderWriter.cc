@@ -22,7 +22,7 @@ MyDB_TableReaderWriter :: MyDB_TableReaderWriter (MyDB_TablePtr forMe, MyDB_Buff
 	this->myBuffer = myBuffer;
 }
 
-MyDB_TableReaderWriter::~MyDB_TableReaderWriter() {
+MyDB_TableReaderWriter :: ~MyDB_TableReaderWriter() {
     std::cout << "Destroying TableReaderWriter: clearing pages..." << std::endl;
     for (auto &p : pages) {
         if (p) {

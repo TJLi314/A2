@@ -25,6 +25,8 @@ public:
 	// buffer manager
 	MyDB_TableReaderWriter (MyDB_TablePtr forMe, MyDB_BufferManagerPtr myBuffer);
 
+    ~MyDB_TableReaderWriter();
+
 	// gets an empty record from this table
 	MyDB_RecordPtr getEmptyRecord ();
 

@@ -27,7 +27,7 @@ MyDB_PageType MyDB_PageReaderWriter :: getType () {
 }
 
 MyDB_RecordIteratorPtr MyDB_PageReaderWriter :: getIterator (MyDB_RecordPtr ptr) {
-	MyDB_PageRecIteratorPtr itr =  std::make_shared<MyDB_PageRecIterator>(ptr, [this](int current) { return this->isLast(current); }, [this]() { return this->handle->getBytes(); }, sizeof(PageHeader));
+	MyDB_PageRecIteratorPtr itr =  std::make_shared<MyDB_PageRecIterator>(ptr, [this](int current) { return this->isLast(current); }, [this]() { return this->getBytes(); }, sizeof(PageHeader));
 	return itr;
 }
 
@@ -66,13 +66,16 @@ bool MyDB_PageReaderWriter :: append (MyDB_RecordPtr rec) {
 }
 
 bool MyDB_PageReaderWriter :: isLast(int current) {
-    PageHeader * header = (PageHeader *)this->handle->getBytes();
+    PageHeader * header = (PageHeader *)this->getBytes();
     return (char *)header + current == (char *)header->nextFreeByte;
 }
 
 MyDB_PageReaderWriter :: ~MyDB_PageReaderWriter () {
     std::cout << "Destroying PageReaderWriter" << std::endl;
-    this->handle = nullptr;
+}
+
+void * MyDB_PageReaderWriter :: getBytes() {
+    return this->handle->getBytes();
 }
 
 #endif
