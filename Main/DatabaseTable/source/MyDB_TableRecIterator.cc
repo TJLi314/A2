@@ -19,11 +19,14 @@ bool MyDB_TableRecIterator::hasNext() {
 
     // Get the next page iterator
     currentPageIndex++;
-    MyDB_PageReaderWriter currentPageRW = (*myTableRW)[currentPageIndex];   
-    currentPageIter = currentPageRW.getIterator(myRecord);  
-
-    if (currentPageIter->hasNext()) {
-        return true;
+    int lastPage = myTableRW->lastPageIndex;
+    while (currentPageIndex <= lastPage) {
+        MyDB_PageReaderWriter currentPageRW = (*myTableRW)[currentPageIndex];   
+        currentPageIter = currentPageRW.getIterator(myRecord);  
+        if (currentPageIter->hasNext()) {
+            return true;
+        }
+        currentPageIndex++;
     }
 
     return false;
