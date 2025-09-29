@@ -7,4 +7,6 @@ Questions:
 - Do we have to do this in loadFromTextFile: myTable->setLastPage(-1)? Is there anything else we have to do in the MyDB_Table code?
 - Are we allowed to use input file streams? (ifstreams)
 - are all records written to a given page going to be of the same size?
+
+valgrind
 	

@@ -39,12 +39,12 @@ MyDB_PageReaderWriter MyDB_TableReaderWriter :: operator [] (size_t i) {
         std::cout << "Page index out of range, creating new pages" << std::endl;
 
 		// Create empty pages up to and including the requested page
-		for (size_t index = 1; index <= i - pages.size() + 1; index++) {
-			pages.push_back(make_shared<MyDB_PageReaderWriter>(myBuffer->getPageSize(), myBuffer->getPage(myTable, pages.size())));
+        int start = pages.size();
+		for (size_t index = start; index <= i; index++) {
+			pages.push_back(make_shared<MyDB_PageReaderWriter>(myBuffer->getPageSize(), myBuffer, myTable, index));
+            std::cout << "Created page at index: " << index << std::endl;
 		}
     }
-    std::cout << "trying to access page : " << i << std::endl;
-    std::cout << "pages size: " << pages.size() << std::endl;
 	return *pages[i];
 }
 
@@ -57,7 +57,8 @@ MyDB_PageReaderWriter MyDB_TableReaderWriter :: last () {
         std::cout << "Table has no pages" << std::endl;
 		
 		// Create an empty page to return
-		pages.push_back(make_shared<MyDB_PageReaderWriter>(myBuffer->getPageSize(), myBuffer->getPage(myTable, 0)));
+		pages.push_back(make_shared<MyDB_PageReaderWriter>(myBuffer->getPageSize(), myBuffer, myTable, 0));
+        std::cout << "Created first page" << std::endl;
     }
     return *pages.back(); 
 }
@@ -69,7 +70,8 @@ void MyDB_TableReaderWriter :: append (MyDB_RecordPtr appendMe) {
 	if (!last().append(appendMe)) {
         // std::cout << "Creating new page for append" << std::endl;
 
-		MyDB_PageReaderWriterPtr newPageRW = make_shared<MyDB_PageReaderWriter>(myBuffer->getPageSize(), myBuffer->getPage(myTable, pages.size()));
+		MyDB_PageReaderWriterPtr newPageRW = make_shared<MyDB_PageReaderWriter>(myBuffer->getPageSize(), myBuffer, myTable, pages.size());
+        // std::cout << "New page handle: " << newPageRW->getBytes() << std::endl;
 		pages.push_back(newPageRW);
 
 		// This should not happen

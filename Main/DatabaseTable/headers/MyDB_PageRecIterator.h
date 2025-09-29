@@ -5,6 +5,7 @@
 #include <memory>
 #include "MyDB_RecordIterator.h"
 #include "MyDB_Record.h"
+#include "MyDB_PageHandle.h"
 using namespace std;
 
 // This pure virtual class is used to iterate through the records in a page or file
@@ -26,14 +27,13 @@ public:
 	bool hasNext () override;
 
 	// destructor and contructor
-	MyDB_PageRecIterator (MyDB_RecordPtr ptr, std::function<bool(int)> isLast, std::function<void*()> getBytes, int offset);
+	MyDB_PageRecIterator (MyDB_RecordPtr ptr, MyDB_PageHandle handle, int offset);
 
 	~MyDB_PageRecIterator () override;
 
 private:
 
-    std::function<bool(int)> isLast;
-    std::function<void*()> getBytes;
+    MyDB_PageHandle handle;
     MyDB_RecordPtr record;
     int current;
 };

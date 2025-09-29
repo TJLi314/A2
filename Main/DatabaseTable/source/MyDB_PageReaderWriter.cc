@@ -5,9 +5,9 @@
 #include "MyDB_PageReaderWriter.h"
 #include <memory>
 
-MyDB_PageReaderWriter :: MyDB_PageReaderWriter (int pageSize, MyDB_PageHandle handle) {
+MyDB_PageReaderWriter :: MyDB_PageReaderWriter (int pageSize, MyDB_BufferManagerPtr mgr, MyDB_TablePtr table, int index) {
     this->pageSize = pageSize;
-    this->handle = handle;
+    this->handle = mgr->getPage(table, index);
 }
 
 MyDB_PageReaderWriter :: MyDB_PageReaderWriter () {
@@ -27,7 +27,7 @@ MyDB_PageType MyDB_PageReaderWriter :: getType () {
 }
 
 MyDB_RecordIteratorPtr MyDB_PageReaderWriter :: getIterator (MyDB_RecordPtr ptr) {
-	MyDB_PageRecIteratorPtr itr =  std::make_shared<MyDB_PageRecIterator>(ptr, [this](int current) { return this->isLast(current); }, [this]() { return this->getBytes(); }, sizeof(PageHeader));
+	MyDB_PageRecIteratorPtr itr =  std::make_shared<MyDB_PageRecIterator>(ptr, this->handle, sizeof(PageHeader));
 	return itr;
 }
 
@@ -44,13 +44,9 @@ bool MyDB_PageReaderWriter :: append (MyDB_RecordPtr rec) {
         header->nextFreeByte = sizeof(PageHeader);
         header->constructed = 1;
         handle->wroteBytes();
-        std::cout << "new page constructed" << std::endl;
-    } else {
-        std::cout << "page already constructed, nextFreeByte: " << header->nextFreeByte << std::endl;
     }
 
     if (header->nextFreeByte + sizeof(size_t) + rec->getBinarySize() > header->pageSize) {
-        std::cout << "Not enough space to append record of size " << rec->getBinarySize() << " to page of size " << header->pageSize << " nextFreeByte: " << header->nextFreeByte << std::endl;
         return false;
     }
 
@@ -65,17 +61,7 @@ bool MyDB_PageReaderWriter :: append (MyDB_RecordPtr rec) {
     return true;
 }
 
-bool MyDB_PageReaderWriter :: isLast(int current) {
-    PageHeader * header = (PageHeader *)this->getBytes();
-    return (char *)header + current == (char *)header->nextFreeByte;
-}
-
 MyDB_PageReaderWriter :: ~MyDB_PageReaderWriter () {
-    std::cout << "Destroying PageReaderWriter" << std::endl;
-}
-
-void * MyDB_PageReaderWriter :: getBytes() {
-    return this->handle->getBytes();
 }
 
 #endif

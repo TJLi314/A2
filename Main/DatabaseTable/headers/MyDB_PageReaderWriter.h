@@ -7,12 +7,14 @@
 #include "MyDB_Schema.h"
 #include "MyDB_Record.h"
 #include "MyDB_PageHandle.h"
+#include "MyDB_BufferManager.h"
+#include "MyDB_Table.h"
 
 typedef struct PageHeader {
-    MyDB_PageType type;
-    int constructed;
     size_t nextFreeByte;
     size_t pageSize;
+    MyDB_PageType type;
+    int constructed;
 } PageHeader;
 
 class MyDB_PageReaderWriter;
@@ -23,7 +25,7 @@ class MyDB_PageReaderWriter {
 
 public:
 
-    MyDB_PageReaderWriter (int pageSize, MyDB_PageHandle handle);
+    MyDB_PageReaderWriter (int pageSize, MyDB_BufferManagerPtr mgr, MyDB_TablePtr table, int index);
 
     MyDB_PageReaderWriter ();
 
@@ -50,8 +52,6 @@ public:
 
 	// sets the type of the page
 	void setType (MyDB_PageType toMe);
-
-    void * getBytes();
 	
 private:
 
@@ -59,8 +59,6 @@ private:
     size_t pageSize;
 
 	// ANYTHING ELSE YOU WANT HERE
-
-    bool isLast(int current);
 };
 
 #endif
