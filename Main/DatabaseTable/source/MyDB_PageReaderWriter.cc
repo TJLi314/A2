@@ -39,35 +39,27 @@ void MyDB_PageReaderWriter :: setType (MyDB_PageType type) {
 
 bool MyDB_PageReaderWriter :: append (MyDB_RecordPtr rec) {
     PageHeader * header = (PageHeader *)handle->getBytes();
-    std::cout << "Appending record of size " << rec->getBinarySize() << " to page with page size " << pageSize << std::endl;
-    std::cout << "rec at " << &rec << std::endl;
     if (header->constructed == 0) {
         header->pageSize = pageSize;
-        header->nextFreeByte = (char *)header + sizeof(PageHeader);
-        std::cout << "first free bytes: " << header->nextFreeByte << std::endl;
+        header->nextFreeByte = sizeof(PageHeader);
         header->constructed = 1;
         handle->wroteBytes();
-        std::cout << "Initialized page header" << std::endl;
+        std::cout << "new page constructed" << std::endl;
     }
 
-
-    if ((char *)header->nextFreeByte + sizeof(size_t) + rec->getBinarySize() > (char *)header + header->pageSize) {
-        std::cout << "Not enough space on page to append record" << std::endl;
+    if (header->nextFreeByte + sizeof(size_t) + rec->getBinarySize() > header->pageSize) {
+        std::cout << "Not enough space to append record of size " << rec->getBinarySize() << " to page of size " << header->pageSize << " nextFreeByte: " << header->nextFreeByte << std::endl;
         return false;
     }
 
-    std::cout << "page is not full, appending record, size of page header: " << sizeof(PageHeader) << std::endl;
 
-    void * toWrite = header->nextFreeByte;
+    void * toWrite = (char *)header + header->nextFreeByte;
     size_t size = rec->getBinarySize();
-    std::cout << "Writing size_t at " << toWrite << " with header at " << header << std::endl;
     memcpy(toWrite, &size, sizeof(size_t));
     toWrite = (char *)toWrite + sizeof(size_t);
-    std::cout << "Writing record at " << toWrite<< std::endl;
     rec->toBinary(toWrite);
-    header->nextFreeByte = (char *)toWrite + rec->getBinarySize();
+    header->nextFreeByte = header->nextFreeByte + rec->getBinarySize() + sizeof(size_t);
     handle->wroteBytes();
-    std::cout << "Appended record, next free byte is at " << header->nextFreeByte << std::endl;
     return true;
 }
 

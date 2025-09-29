@@ -3,7 +3,6 @@
 #define PAGE_RW_H
 
 #include "MyDB_PageType.h"
-#include "MyDB_TableReaderWriter.h"
 #include "MyDB_PageRecIterator.h"
 #include "MyDB_Schema.h"
 #include "MyDB_Record.h"
@@ -12,13 +11,15 @@
 typedef struct PageHeader {
     MyDB_PageType type;
     int constructed;
-    int pageSize;
-    void * nextFreeByte;
+    size_t nextFreeByte;
+    size_t pageSize;
 } PageHeader;
 
-class MyDB_PageReaderWriter {
+class MyDB_PageReaderWriter;
 
-    
+typedef shared_ptr <MyDB_PageReaderWriter> MyDB_PageReaderWriterPtr;    
+
+class MyDB_PageReaderWriter {
 
 public:
 
@@ -51,7 +52,7 @@ public:
 private:
 
     MyDB_PageHandle handle;
-    int pageSize;
+    size_t pageSize;
 
 	// ANYTHING ELSE YOU WANT HERE
 

@@ -28,22 +28,22 @@ MyDB_PageReaderWriter MyDB_TableReaderWriter :: operator [] (size_t i) {
 
 		// Create empty pages up to and including the requested page
 		for (size_t index = 1; index <= i - pages.size() + 1; i++) {
-			pages.push_back(MyDB_PageReaderWriter(myBuffer->getPageSize(), myBuffer->getPage(myTable, i)));
+			pages.push_back(make_shared<MyDB_PageReaderWriter>(myBuffer->getPageSize(), myBuffer->getPage(myTable, i)));
 		}
     }
-	return pages[i];
+	return *pages[i];
 }
 
 MyDB_RecordPtr MyDB_TableReaderWriter :: getEmptyRecord () {
 	return make_shared <MyDB_Record>(myTable->getSchema());
 }
 
-MyDB_PageReaderWriter MyDB_TableReaderWriter :: last () {
+MyDB_PageReaderWriterPtr MyDB_TableReaderWriter :: last () {
 	if (pages.empty()) {
         std::cout << "Table has no pages" << std::endl;
 		
 		// Create an empty page to return
-		pages.push_back(MyDB_PageReaderWriter(myBuffer->getPageSize(), myBuffer->getPage(myTable, 0)));
+		pages.push_back(make_shared<MyDB_PageReaderWriter>(myBuffer->getPageSize(), myBuffer->getPage(myTable, 0)));
     }
     return pages.back(); 
 }
@@ -52,12 +52,12 @@ void MyDB_TableReaderWriter :: append (MyDB_RecordPtr appendMe) {
 	// TODO: Go through every page and try to append
 
 	// I'm appending to the last page of the table for now
-	if (!last().append(appendMe)) {
-		MyDB_PageReaderWriter newPageRW = MyDB_PageReaderWriter(myBuffer->getPageSize(), myBuffer->getPage(myTable, pages.size()));
+	if (!last()->append(appendMe)) {
+		MyDB_PageReaderWriterPtr newPageRW = make_shared<MyDB_PageReaderWriter>(myBuffer->getPageSize(), myBuffer->getPage(myTable, pages.size()));
 		pages.push_back(newPageRW);
 
 		// This should not happen
-		if (!last().append(appendMe)) {
+		if (!last()->append(appendMe)) {
             std::cout << "happened anyways" << std::endl;
 		}
 	}
@@ -66,8 +66,8 @@ void MyDB_TableReaderWriter :: append (MyDB_RecordPtr appendMe) {
 void MyDB_TableReaderWriter :: loadFromTextFile (string fromMe) {
 	// Clear existing pages
     std::cout << "Clearing existing pages..." << std::endl;
-	for (MyDB_PageReaderWriter pageRW: pages) {
-		pageRW.clear();
+	for (MyDB_PageReaderWriterPtr pageRW: pages) {
+		pageRW->clear();
 	}
 	// Do we have to do this? Is there anything we have to do in the MyDB_Table code?
 	myTable->setLastPage(-1);
@@ -85,17 +85,21 @@ void MyDB_TableReaderWriter :: loadFromTextFile (string fromMe) {
     std::cout << "3" << std::endl;
 
 	string line;
+    int lines = 0;
     while (getline(inFile, line)) {
-        std::cout << "Read line: " << line << std::endl;
+        if (lines % 100 == 0) {
+            std::cout << "Read " << lines << " lines" << std::endl;
+        }
+        lines++;
         if (line.empty()) {
             continue; 
         }
 
+        // std::cout << "schema at " << myTable->getSchema().use_count() <<  " at addr " << myTable->getSchema().get() << std::endl;
         MyDB_RecordPtr rec = getEmptyRecord();
         rec->fromString(line);
 
         append(rec);
-        std::cout << "Appended record of size " << rec->getBinarySize() << " to table" << std::endl;
     }
     std::cout << "4" << std::endl;
 
@@ -116,8 +120,8 @@ void MyDB_TableReaderWriter :: writeIntoTextFile (string toMe) {
     }
 
 	MyDB_RecordPtr rec = getEmptyRecord();
-	for (MyDB_PageReaderWriter pageRW : pages) {
-		MyDB_RecordIteratorPtr it = pageRW.getIterator(rec);
+	for (MyDB_PageReaderWriterPtr pageRW : pages) {
+		MyDB_RecordIteratorPtr it = pageRW->getIterator(rec);
 
         while (it->hasNext()) {
             it->getNext();
