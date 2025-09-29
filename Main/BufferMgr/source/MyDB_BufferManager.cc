@@ -294,6 +294,7 @@ MyDB_BufferManager :: MyDB_BufferManager (size_t pageSizeIn, size_t numPagesIn, 
 }
 
 MyDB_BufferManager :: ~MyDB_BufferManager () {
+	std::cout << "Destroying BufferManager" << std::endl;
 	
 	for (auto page : allPages) {
 
@@ -321,6 +322,8 @@ MyDB_BufferManager :: ~MyDB_BufferManager () {
 	}
 
 	unlink (tempFile.c_str ());
+
+
 }
 
 

@@ -11,7 +11,7 @@ class MyDB_TableRecIterator : public MyDB_RecordIterator {
 
 public:
 
-    MyDB_TableRecIterator(MyDB_TableReaderWriterPtr myTableRW, MyDB_RecordPtr record);
+    MyDB_TableRecIterator(MyDB_TableReaderWriter* myTableRW, MyDB_RecordPtr record);
 
     bool hasNext() override;
 
@@ -19,7 +19,7 @@ public:
 
 private:
 
-    MyDB_TableReaderWriterPtr myTableRW;
+    MyDB_TableReaderWriter* myTableRW;
     MyDB_RecordPtr myRecord;
     size_t currentPageIndex;
     MyDB_RecordIteratorPtr currentPageIter;

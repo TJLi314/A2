@@ -15,7 +15,7 @@ class MyDB_PageReaderWriter;
 class MyDB_TableReaderWriter;
 typedef shared_ptr <MyDB_TableReaderWriter> MyDB_TableReaderWriterPtr;
 
-class MyDB_TableReaderWriter : public std::enable_shared_from_this<MyDB_TableReaderWriter> {
+class MyDB_TableReaderWriter {
 
 public:
 

@@ -22,12 +22,24 @@ MyDB_TableReaderWriter :: MyDB_TableReaderWriter (MyDB_TablePtr forMe, MyDB_Buff
 	this->myBuffer = myBuffer;
 }
 
+MyDB_TableReaderWriter::~MyDB_TableReaderWriter() {
+    std::cout << "Destroying TableReaderWriter: clearing pages..." << std::endl;
+    for (auto &p : pages) {
+        if (p) {
+            p->clear();   // if PageReaderWriter has clear; otherwise just reset pointer
+            p.reset();
+        }
+    }
+    pages.clear();
+    std::cout << "TableReaderWriter destroyed" << std::endl;
+}
+
 MyDB_PageReaderWriter MyDB_TableReaderWriter :: operator [] (size_t i) {
 	if (i >= pages.size()) {
         std::cout << "Page index out of range, creating new pages" << std::endl;
 
 		// Create empty pages up to and including the requested page
-		for (size_t index = 1; index <= i - pages.size() + 1; i++) {
+		for (size_t index = 1; index <= i - pages.size() + 1; index++) {
 			pages.push_back(make_shared<MyDB_PageReaderWriter>(myBuffer->getPageSize(), myBuffer->getPage(myTable, i)));
 		}
     }
@@ -53,6 +65,8 @@ void MyDB_TableReaderWriter :: append (MyDB_RecordPtr appendMe) {
 
 	// I'm appending to the last page of the table for now
 	if (!last().append(appendMe)) {
+        std::cout << "Creating new page for append" << std::endl;
+
 		MyDB_PageReaderWriterPtr newPageRW = make_shared<MyDB_PageReaderWriter>(myBuffer->getPageSize(), myBuffer->getPage(myTable, pages.size()));
 		pages.push_back(newPageRW);
 
@@ -87,6 +101,7 @@ void MyDB_TableReaderWriter :: loadFromTextFile (string fromMe) {
 	string line;
     int lines = 0;
     while (getline(inFile, line)) {
+        std::cout << "Read line: " + line << std::endl;
         if (lines % 100 == 0) {
             std::cout << "Read " << lines << " lines" << std::endl;
         }
@@ -99,6 +114,10 @@ void MyDB_TableReaderWriter :: loadFromTextFile (string fromMe) {
         rec->fromString(line);
 
         append(rec);
+
+        if (lines == 1) {
+            break;
+        }
     }
     std::cout << "4" << std::endl;
 
@@ -108,7 +127,7 @@ void MyDB_TableReaderWriter :: loadFromTextFile (string fromMe) {
 }
 
 MyDB_RecordIteratorPtr MyDB_TableReaderWriter :: getIterator (MyDB_RecordPtr iterateIntoMe) {
-	return make_shared <MyDB_TableRecIterator>(shared_from_this(), iterateIntoMe);
+	return make_shared <MyDB_TableRecIterator>(this, iterateIntoMe);
 }
 
 void MyDB_TableReaderWriter :: writeIntoTextFile (string toMe) {

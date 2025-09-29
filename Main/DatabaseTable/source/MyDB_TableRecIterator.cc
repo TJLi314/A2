@@ -1,7 +1,7 @@
 #include "MyDB_TableRecIterator.h"
 
 MyDB_TableRecIterator::MyDB_TableRecIterator(
-    MyDB_TableReaderWriterPtr myTableRW,
+    MyDB_TableReaderWriter* myTableRW,
     MyDB_RecordPtr record
 ) {
     this->myTableRW = myTableRW;
