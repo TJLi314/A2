@@ -50,13 +50,14 @@ public:
 	// access the last page in the file
 	MyDB_PageReaderWriter last ();
 
+    size_t lastPageIndex;
+
 private:
 
 	// ANYTHING YOU NEED HERE
 	MyDB_TablePtr myTable;
 	MyDB_BufferManagerPtr myBuffer;
 	MyDB_PageReaderWriter lastPageRW;
-	size_t lastPageIndex;
 };
 
 #endif

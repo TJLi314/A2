@@ -26,6 +26,7 @@ MyDB_TableReaderWriter :: MyDB_TableReaderWriter (MyDB_TablePtr forMe, MyDB_Buff
     if (tableLastPage != -1) {
         // When creating first page, need to create specific first page, call getbytes(), write to it and initialize it
         this->lastPageIndex = tableLastPage;
+        std::cout << "Table has last page: " << tableLastPage << std::endl;
         this->lastPageRW = MyDB_PageReaderWriter(myBuffer->getPageSize(), myBuffer, forMe, tableLastPage, false);
     } else {
         this->lastPageIndex = 0;
@@ -94,7 +95,6 @@ void MyDB_TableReaderWriter :: loadFromTextFile (string fromMe) {
 	string line;
     int lines = 0;
     while (getline(inFile, line)) {
-        std::cout << "Read line: " + line << std::endl;
         // if (lines % 100 == 0) {
         //     std::cout << "Read " << lines << " lines" << std::endl;
         // }

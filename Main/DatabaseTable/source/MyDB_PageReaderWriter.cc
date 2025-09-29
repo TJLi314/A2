@@ -31,7 +31,6 @@ MyDB_PageType MyDB_PageReaderWriter :: getType () {
 
 MyDB_RecordIteratorPtr MyDB_PageReaderWriter :: getIterator (MyDB_RecordPtr ptr) {
     void * header = handle->getBytes();
-    std::cout << "nextfreebyte: " << ((PageHeader *)header)->nextFreeByte << std::endl; 
 	MyDB_PageRecIteratorPtr itr =  std::make_shared<MyDB_PageRecIterator>(ptr, this->handle, sizeof(PageHeader));
 	return itr;
 }
@@ -44,7 +43,6 @@ void MyDB_PageReaderWriter :: setType (MyDB_PageType type) {
 
 bool MyDB_PageReaderWriter :: append (MyDB_RecordPtr rec) {
     PageHeader * header = (PageHeader *)handle->getBytes();
-    std::cout << "Appending record of size: " << rec->getBinarySize() << " at " << header << std::endl;
     if (header->constructed == 0) {
         header->pageSize = pageSize;
         header->nextFreeByte = sizeof(PageHeader);
@@ -60,8 +58,6 @@ bool MyDB_PageReaderWriter :: append (MyDB_RecordPtr rec) {
     rec->toBinary(toWrite);
     header->nextFreeByte = header->nextFreeByte + rec->getBinarySize();
     handle->wroteBytes();
-    std::cout << "header at " << header << ", nextfreebyte at: " << &header->nextFreeByte << std::endl;
-    std::cout << "Appended record, next free byte at: " << *reinterpret_cast<size_t*>(header) << " nextfreeByte: " << header->nextFreeByte << std::endl;
     return true;
 }
 
